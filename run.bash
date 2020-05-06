@@ -17,7 +17,9 @@ SLEEP=60
 
 # Boot the environment
 echo "Use Ctrl-C to break or wait until the end... preparing the environment"
-docker-compose up -d --build
+docker-compose pull
+docker-compose build --pull
+docker-compose up -d
 
 # Various initializations (we naively try repeating these until ready)
 declare -a INITS=(
