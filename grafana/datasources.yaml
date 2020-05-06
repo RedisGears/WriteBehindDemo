@@ -1,0 +1,9 @@
+apiVersion: 1
+
+datasources:
+  - name: wbdemo
+    type: influxdb
+    access: proxy
+    database: wbdemo
+    url: http://influxdb:8086
+    isDefault: true

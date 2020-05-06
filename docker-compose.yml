@@ -1,0 +1,86 @@
+version: '3.4'
+
+services:
+  redisgears:
+    image: redislabs/redisgears:edge
+    ports:
+      - "6379:6379"
+    # Uncomment and edit the local path in the following line to have MySQL's
+    # data persisted to the host's filesystem.
+    # volumes: ./redisgears:/data
+
+  rgcluster:
+    image: redislabs/rgcluster:edge
+    ports:
+      - "30001:30001"
+      - "30002:30002"
+      - "30003:30003"
+    # Uncomment and edit the local path in the following line to have MySQL's
+    # data persisted to the host's filesystem.
+    # volumes: ./rgcluster:/data
+
+  db:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    env_file: ./compose.env
+    # Uncomment and edit the local path in the following line to have MySQL's
+    # data persisted to the host's filesystem.
+    # volumes: ./mysql:/var/lib/mysql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+      - INFLUXDB_HTTP_MAX_BODY_SIZE=0
+    # Uncomment and edit the local path in the following line to have MySQL's
+    # data persisted to the host's filesystem.
+    # volumes: ./influxdb:/var/lib/influxdb
+
+  telegraf:
+    image: telegraf:latest
+    env_file: ./compose.env
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - influxdb
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    volumes:
+      - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - ./grafana/providers.yaml:/etc/grafana/provisioning/dashboards/providers.yaml
+      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+    depends_on:
+      - influxdb
+
+  k6:
+    image: loadimpact/k6:latest
+    ports:
+      - "6565:6565"
+    environment:
+      - K6_OUT=influxdb=http://influxdb:8086/wbdemo
+    volumes:
+      - ./k6:/scripts
+
+  app:
+    build: ./app
+    image: wbdemo
+    ports:
+      - "8080:8080"
+    env_file: ./compose.env
+    depends_on:
+      - redisgears
+      - rgcluster
+      - db
