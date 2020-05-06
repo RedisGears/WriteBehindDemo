@@ -47,7 +47,7 @@ for SCENARIO in $SCENARIOS; do
     for ENDPOINT in $ENDPOINTS; do
         for ITERATION in $(seq 1 $ITERATIONS); do
             echo "Scenario: $SCENARIO, endpoint: $ENDPOINT, iteration: $ITERATION";
-            docker-compose run --rm -e scenario=$scenario -e target=$ENDPOINT k6 run /scripts/script.js;
+            docker-compose run --rm -e scenario=$SCENARIO -e target=$ENDPOINT k6 run /scripts/script.js;
             sleep $SLEEP
         done;
     done;

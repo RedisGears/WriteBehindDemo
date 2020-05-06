@@ -2,6 +2,7 @@
 
 ## Requirements
 
+* Preferably Debian-based OS
 * Docker Compose
 * About 64 CPU cores (mainly for simulating virtual users)
 * Several GBs of free RAM
